@@ -43,12 +43,14 @@ var cors = require("cors");
 var typeorm_1 = require("typeorm");
 var amqp = require("amqplib/callback_api");
 var product_1 = require("./entity/product");
-var port = 8001;
+var dotenv = require("dotenv");
+dotenv.config();
+console.log(process.env.MONGO_USER);
 (0, typeorm_1.createConnection)().then(function (connection) { return __awaiter(void 0, void 0, void 0, function () {
     var productRepository;
     return __generator(this, function (_a) {
         productRepository = connection.getMongoRepository(product_1.Product);
-        amqp.connect('amqps://nebyilix:oc2I9Q3cG02xLvO4l6ouRF84KLjeLTtj@chimpanzee.rmq.cloudamqp.com/nebyilix', function (err0, conn) {
+        amqp.connect("amqps://".concat(process.env.RABITMQ_USER, ":").concat(process.env.RABITMQ_PASSWORD, "@chimpanzee.rmq.cloudamqp.com/").concat(process.env.RABITMQ_NAME), function (err0, conn) {
             if (err0) {
                 throw err0;
             }
@@ -80,6 +82,23 @@ var port = 8001;
                                 products = _a.sent();
                                 res.send(products);
                                 return [2 /*return*/];
+                        }
+                    });
+                }); });
+                app.post('/api/products/:id/like', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+                    var products, product, results;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, productRepository.find()];
+                            case 1:
+                                products = _a.sent();
+                                product = products.find(function (p) { return p.id == req.params.id; });
+                                product.likes = product.likes + 1;
+                                return [4 /*yield*/, productRepository.save(product)];
+                            case 2:
+                                results = _a.sent();
+                                // ch.sendToQueue('products', Buffer.from(JSON.stringify(results)));
+                                return [2 /*return*/, res.json(results)];
                         }
                     });
                 }); });
@@ -140,8 +159,8 @@ var port = 8001;
                         }
                     });
                 }); }, { noAck: true });
-                app.listen(port, function () {
-                    console.log("Example app listening at http://localhost:".concat(port));
+                app.listen(process.env.SERVER_PORT, function () {
+                    console.log("Example app listening at http://localhost:".concat(process.env.SERVER_PORT));
                 });
                 process.on('beforeExit', function (code) {
                     conn.close();

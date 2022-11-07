@@ -8,15 +8,22 @@ import { createConnection } from 'typeorm';
 
 import * as amqp from 'amqplib/callback_api';
 import { Product } from './entity/product';
-const port = 8001;
+import  * as dotenv from "dotenv";
+
+
+dotenv.config();
+
 
 createConnection().then(async connection => {
+
     const productRepository = connection.getMongoRepository(Product);
-    amqp.connect('amqps://nebyilix:oc2I9Q3cG02xLvO4l6ouRF84KLjeLTtj@chimpanzee.rmq.cloudamqp.com/nebyilix' ,(err0,conn) => {
-        if(err0){
+    amqp.connect(`amqps://${process.env.RABITMQ_USER!}:${process.env.RABITMQ_PASSWORD!}@chimpanzee.rmq.cloudamqp.com/${process.env.RABITMQ_NAME!}` ,(err0,conn) => {
+     
+    if(err0){
             throw err0;
         }
 
+        
         conn.createChannel((err1,ch) => {
             if(err1){
                 throw err1;
@@ -42,11 +49,22 @@ createConnection().then(async connection => {
             app.use(cors());
 
             app.get('/api/products', async (req: Request, res: Response) => {
-           
                 const products = await productRepository.find();
                 res.send(products);
-
             });
+
+            app.post('/api/products/:id/like', async (req: Request, res: Response) => {
+                const products:Product[] = await productRepository.find();
+            
+                const product :Product = products.find(p => p.id == req.params.id);
+            
+                
+                product.likes = product.likes + 1;
+                const results = await productRepository.save(product);
+                // ch.sendToQueue('products', Buffer.from(JSON.stringify(results)));
+                return res.json(results);
+            });
+
 
             ch.consume('productCreated', async(msg) => {
               const eventProduct:Product = JSON.parse(msg.content.toString());
@@ -85,8 +103,8 @@ createConnection().then(async connection => {
            
 
 
-            app.listen(port, () => {
-                console.log(`Example app listening at http://localhost:${port}`)
+            app.listen(process.env.SERVER_PORT, () => {
+                console.log(`Example app listening at http://localhost:${process.env.SERVER_PORT}`)
             })
             process.on('beforeExit', (code) => {
                 conn.close();
