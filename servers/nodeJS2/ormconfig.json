@@ -1,0 +1,17 @@
+
+
+  {
+    "type": "mongodb",
+    "url": "mongodb+srv://Anton:No4XkJVQILLqJzCc@cluster0.ku5rn.mongodb.net/nodejsORM?retryWrites=true&w=majority",
+    "useNewUrlParser": true,
+    "synchronize": true,
+    "logging": false,
+    "entities": [
+        "src/entity/*.js"
+      ],
+      "cli": {
+        "entitiesDir": "src/entity"
+      }
+  }
+
+ 
