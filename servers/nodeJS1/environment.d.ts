@@ -2,10 +2,11 @@ declare global {
     namespace NodeJS {
         interface ProcessEnv {
         NODE_ENV: 'development' | 'production';
-        MONGO_NAME:string;
-        MONGO_PORT:string;
-        MONGO_USER:string;
-        MONGO_PASSWORD: string;
+        DB_USER:string;
+        DB_HOST:string;
+        DB_DATABASE:string;
+        DB_PORT:number;
+        DB_PASSWORD: string;
         SERVER_PORT: string;
         RABITMQ_NAME:string;
         RABITMQ_PORT:string;
